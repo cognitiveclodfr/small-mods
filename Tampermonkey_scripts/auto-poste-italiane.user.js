@@ -1,9 +1,10 @@
 // ==UserScript==
-// @name         Auto Poste Italiane Provider
+// @name         Auto Courier Provider
 // @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Автоматично заповнює Poste Italiane і зберігає тракінг
+// @version      1.1
+// @description  Автоматично визначає кур'єра по тракінг-номеру і зберігає
 // @match        */wp-admin/post.php?post=*&action=edit*
+// @match        */wp-admin/admin.php?page=wc-orders&action=edit*
 // @grant        none
 // ==/UserScript==
 
@@ -36,7 +37,7 @@
             const form = document.getElementById('advanced-shipment-tracking-form');
 
             // Перевіряємо чи форма прихована (будь-яким способом)
-            const isHidden = !form || form.offsetParent === null || 
+            const isHidden = !form || form.offsetParent === null ||
                              getComputedStyle(form).display === 'none';
 
             if (isHidden && addTrackingBtn) {
@@ -65,14 +66,28 @@
 
             const trackingNumber = trackingInput.value.trim();
 
-            // Визначаємо провайдера по префіксу тракінгу
+            // Визначаємо провайдера по префіксу/паттерну тракінгу
             let provider = '';
             if (trackingNumber.startsWith('3UW')) {
                 provider = 'poste-italiane';
             } else if (trackingNumber.startsWith('H00TCA')) {
                 provider = 'evri';
-            } else if (trackingNumber.startsWith('LY')) {
+            } else if (trackingNumber.startsWith('3SBPB')) {
+                provider = 'bpost';                                         // DHL via B-POST
+            } else if (/^LY\d{9}[A-Z]{2}$/.test(trackingNumber)) {
                 provider = 'deutsche-post';
+            } else if (/^LM\d{9}[A-Z]{2}$/.test(trackingNumber)) {
+                provider = 'postnord';
+            } else if (/^LS\d{9}[A-Z]{2}$/.test(trackingNumber)) {
+                provider = 'asendia';
+            } else if (trackingNumber.startsWith('1042') && trackingNumber.length === 22) {
+                provider = 'austria-post';
+            } else if (trackingNumber.startsWith('633') && trackingNumber.length === 23) {
+                provider = 'correos-express';
+            } else if (trackingNumber.startsWith('323') && trackingNumber.length === 23) {
+                provider = 'correos';
+            } else if (trackingNumber.startsWith('7000') && trackingNumber.length === 13) {
+                provider = 'fan-courier';
             }
 
             // Якщо provider не вибраний і ми знаємо який ставити

@@ -5,6 +5,7 @@
 // @description  WooCommerce to Postone - Fixed values + Dynamic weight + Select2 fix
 // @author       Dolphin
 // @match        *://*/wp-admin/post.php?post=*&action=edit*
+// @match        *://*/wp-admin/admin.php?page=wc-orders&action=edit*
 // @match        https://postone.eu/*
 // @match        https://*.postone.eu/*
 // @grant        GM_setValue
@@ -428,7 +429,7 @@
             const match = heading.textContent.match(/Order #(\d+)/);
             return match ? match[1] : '';
         }
-        const urlMatch = window.location.href.match(/post=(\d+)/);
+        const urlMatch = window.location.href.match(/(?:post|id)=(\d+)/);
         return urlMatch ? urlMatch[1] : '';
     }
 
@@ -462,7 +463,7 @@
     const url = window.location.href;
     console.log('[Init] URL:', url);
 
-    if (url.includes('wp-admin/post.php')) {
+    if (url.includes('wp-admin/post.php') || url.includes('page=wc-orders')) {
         console.log('[Init] WooCommerce');
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initWooCommerce);

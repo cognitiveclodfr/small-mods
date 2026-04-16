@@ -5,6 +5,7 @@
 // @description  Opens orders from a list and auto-clicks Create Shipment on each order page
 // @match        https://lidagreen.com/wp-admin/edit.php*
 // @match        https://lidagreen.com/wp-admin/post.php*
+// @match        https://lidagreen.com/wp-admin/admin.php*
 // @grant        none
 // ==/UserScript==
 
@@ -16,10 +17,11 @@
     // ─── ORDERS LIST PAGE ────────────────────────────────────────────────────
     function isOrdersListPage() {
         const params = new URLSearchParams(window.location.search);
-        return (
-            window.location.pathname.includes('edit.php') &&
-            params.get('post_type') === 'shop_order'
-        );
+        // Legacy: edit.php?post_type=shop_order
+        if (window.location.pathname.includes('edit.php') && params.get('post_type') === 'shop_order') return true;
+        // HPOS: admin.php?page=wc-orders (list = no action=edit)
+        if (window.location.pathname.includes('admin.php') && params.get('page') === 'wc-orders' && params.get('action') !== 'edit') return true;
+        return false;
     }
 
     function initListPage() {
@@ -127,15 +129,16 @@
     // ─── SINGLE ORDER PAGE ───────────────────────────────────────────────────
     function isOrderEditPage() {
         const params = new URLSearchParams(window.location.search);
-        return (
-            window.location.pathname.includes('post.php') &&
-            params.get('action') === 'edit'
-        );
+        // Legacy: post.php?action=edit
+        if (window.location.pathname.includes('post.php') && params.get('action') === 'edit') return true;
+        // HPOS: admin.php?page=wc-orders&action=edit
+        if (window.location.pathname.includes('admin.php') && params.get('page') === 'wc-orders' && params.get('action') === 'edit') return true;
+        return false;
     }
 
     function initOrderPage() {
         const params = new URLSearchParams(window.location.search);
-        const postId = params.get('post');
+        const postId = params.get('post') || params.get('id');
         if (!postId) return;
 
         const queue = safeParseQueue();
